@@ -3,6 +3,10 @@ title: "Red Wine EDA"
 output: html_document
 
 ---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
 
 ##introduction
 
@@ -300,15 +304,6 @@ In terms of the feature of our interest, alcohol seema to have the strongest rel
 ##Multivariate Plots Section
 
 ```{r echo=FALSE, Multivariate_Plots}
-
-ggplot(aes(x = fixed.acidity, y = density, color=factor(quality)), data = redwine) +
-geom_point(alpha = 0.5, size = 1, position = 'jitter') +
-  geom_smooth(method="lm", se=FALSE, size=0.5)+
-scale_color_brewer(type = 'seq', guide = guide_legend(title = 'quality', 
-  override.aes = list(alpha = 1, size = 2)))+
-  ggtitle('density by fixed acidity and quality')
-
-
 ggplot(aes(x=volatile.acidity, y = alcohol, color=factor(quality)), data = redwine) +
 geom_point(alpha = 0.5, size = 1, position = 'jitter') +
           geom_smooth(method = "lm", se = FALSE,size=0.8)  +
@@ -317,7 +312,26 @@ scale_color_brewer(type = 'seq', guide = guide_legend(title = 'quality',
   ggtitle('alcohol by volatile.acidity and quality')
 
 
+```
 
+From the analysis above, we know volatile.acidity and alcohol are both moderately correlated with quality(-0.4 and 0.5 respectively). So I want to explore if this correlation is strengthed with put together. 
+In the plot, we can see that at level 3 and level 8, alcohol and volatile.acidity are positively correlated but at other quality levels, this is not true. So alcohol and volatile.acidity could be independant factors. 
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(aes(x=sulphates, y = alcohol, color=factor(quality)), data = redwine) +
+geom_point() +
+    geom_smooth(method = "lm", se = FALSE,size=0.8)  +
+scale_color_brewer(type = 'seq', guide = guide_legend(title = 'quality', 
+  reverse = T, override.aes = list(alpha = 1, size = 2)))+
+  ggtitle('alcohol by sulphates and quality')
+
+```
+
+For the same reason above, I am looking into the relations between sulphates, alcohol, and quality.
+It turns out that red wines of better quality contain more alcohol and more sulphates but alcohol and sulphates are negatively correlated at almost all quality levels. My guess is when a red wine has a balance but high value of both alcohol and sulphates, it is likely to be of good quality. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 ggplot(aes(x=residual.sugar, y =alcohol, color=factor(quality)), 
        data = redwine) +
 geom_point(alpha = 0.5, size = 1, position = 'jitter') +
@@ -326,10 +340,25 @@ scale_color_brewer(type = 'seq', guide = guide_legend(title = 'quality',
         geom_smooth(method = "lm", se = FALSE,size=0.8)  +
   scale_x_continuous(limits = c(0, 6))+
   ggtitle('alcohol by residual sugar and quality')
+```
+
+I am interested in finding if the sweetness or residual.sugar will affect the alcohol or quality of a wine. The result confirmed my previous analysis that residual.sugar has nothing to do with the quality of a wine. Yet at the same quality level, wines with more residual.sugar have more alcohol. 
+
+```{r}
+ggplot(aes(x=pH, y = alcohol, color=factor(quality)), data = redwine) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE,size=0.8)  +
+scale_color_brewer(palette = 'seq', guide = guide_legend(title = 'quality', 
+  override.aes = list(alpha = 1, size = 2)))+
+    scale_x_continuous(limits = c(3, 3.75))+
+  ggtitle('alcohol by pH and quality')
+```
+
+Similarly, I want to know if the sourness would affect the quality of a wine. The result again shows that pH is not correlated with the quality of wine but pH is positively correlated with alcohol at all quality levels. 
 
 
 
-
+```{r}
 ggplot(aes(x=quality, y=free.sulfur.dioxide/total.sulfur.dioxide, 
            group=quality),  data=redwine)+ 
   geom_boxplot()+
@@ -340,30 +369,9 @@ ggplot(aes(x=quality, y=volatile.acidity/fixed.acidity, group=quality),
        data=redwine)+
   geom_boxplot()+
     ggtitle('volatile percentage VS quality')
-
-
-
-
-ggplot(aes(x=pH, y = alcohol, color=factor(quality)), data = redwine) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE,size=0.8)  +
-scale_color_brewer(palette = 'seq', guide = guide_legend(title = 'quality', 
-  override.aes = list(alpha = 1, size = 2)))+
-    scale_x_continuous(limits = c(3, 3.75))+
-  ggtitle('alcohol by pH and quality')
-
-
-ggplot(aes(x=pH, y = fixed.acidity, color=factor(quality)), data = redwine) +
-geom_point() +
-    geom_smooth(method = "lm", se = FALSE,size=0.8)  +
-scale_color_brewer(palette = 'seq', guide = guide_legend(title = 'quality', 
-  reverse = T, override.aes = list(alpha = 1, size = 2)))+
-    scale_x_continuous(limits = c(3, 3.75))+
-  ggtitle('alcohol by fixed.acidity and quality')
-
-
-
 ```
+
+Free.sulfur.dioxide and total.sulfur.dioxide, volatile.acidity and fixed.acidity sound like relevant pairs to me. Therefore, I am exploring their percentages at different quality levels to see if the percentages are correlated with quality. The first percentage does not matter to quality levels but the second shows a negative correlation. This makes sense because we know volatile.acidity itself is negatively correlated with quality (-0.4).  
 
 
 ```{r echo=FALSE}
@@ -394,13 +402,15 @@ At all quality levels, more fixed acidity usually indicates lower pH value, whic
 Plot I: 
 
 ```{r echo=FALSE, Plot_One}
+
 ggplot(data=redwine, aes(quality))+
-  geom_bar(width=0.5)+  
+  geom_bar(width=0.5)+   
+  scale_x_continuous(breaks=0:10, labels=c("level 0","level 1","level 2","level 3","level 4","level 5","level 6","level 7","level 8","level 9","level 10"), limits=c(0,10))+
   ggtitle('quality numbers')
 
 ```
 
-I am interested in finding the elements correlated with the quality of a red wine. The distribution of red wine quality follows almost a normal distribution, with most red wines in quality 4 and 5. Lowest quality level is 3 and highest is 8.
+I am interested in finding the elements correlated with the quality of a red wine. First, I find the distribution of red wine quality follows almost a normal distribution, with most red wines in quality 4 and 5. Lowest quality level is 3 and highest is 8 in a scale of 0 to 10. 
 
 
 Plot II:
@@ -418,37 +428,11 @@ ggplot(aes(factor(quality),
                shape = 8, 
                size = 4)+
   ggtitle('alcohol VS quality')+
-  labs(y="Alcohol [%]", x="Quality")
-
-ggplot(aes(factor(quality), 
-            sulphates), 
-        data = redwine) +
-  geom_jitter( alpha = .3)  +
-  geom_boxplot( alpha = .5,color = 'grey')+
-  stat_summary(fun.y = "mean", 
-               geom = "point", 
-               color = "green", 
-               shape = 8, 
-               size = 4)+
-  ggtitle('sulphates VS quality')+
-  labs(x="Quality")
-
-ggplot(aes(factor(quality), 
-            volatile.acidity), 
-        data = redwine) +
-  geom_jitter( alpha = .3)  +
-  geom_boxplot( alpha = .5,color = 'grey')+
-  stat_summary(fun.y = "mean", 
-               geom = "point", 
-               color = "yellow", 
-               shape = 8, 
-               size = 4)+
-  ggtitle('volatile acidity VS quality')+
-  labs(x="Quality")
+  labs(y="Alcohol [% by volume]", x="Quality")
 
 ```
 
-Red wines of higher quality tend to have a lower volatile acidity(the correlation is -0.4), high sulphates(the correlation is 0.3), and high alcohol(the correlation is 0.5). Fixed.acidity and volatile.acidity are moderately and negatively correlated and the correlation is -0.3. 
+We already know that red wines of higher quality tend to have high alcohol and the correlation is 0.5. Yet from this plot we know that the correlation is not consistent. From level 5 to level 8, the positive correlation is most obvious. From level 3 to level 4, the correlation also applies. Yet quality level 4 actually contain more alcohol than wine of quality at level 5.Even wines of level 3 contain slightly more alcohol than level 5.  This is against my previous analysis. The abnormal behavior could be because there are few examples at level 3 and level 4. 
 
 
 Plot III:
@@ -460,7 +444,7 @@ geom_point(alpha = 0.5, size = 1, position = 'jitter') +
 scale_color_brewer(type = 'seq', guide = guide_legend(title = 'quality', 
   override.aes = list(alpha = 1, size = 2)))+
   ggtitle('alcohol contained in a red wine by volatile.acidity and quality')+
-  labs(y="alcohol percentage", x="volatile acidity")
+  labs(y="alcohol percentage [% by volume]", x="volatile acidity [- g / dm^3]")
 
 ```
 
